@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.text.format.Time;
 import android.util.Log;
 
 public class ClockActivity extends Activity
@@ -59,23 +60,42 @@ public class ClockActivity extends Activity
 
     class ClockView extends View
     {
+        Time time;
+
         public ClockView(Context context)
         {
             super(context);
+            time = new Time();
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+        {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
 
         @Override
         protected void onDraw(Canvas canvas)
         {
             super.onDraw(canvas);
-            ScalableHelper s = new ScalableHelper(canvas.getWidth(),
-                    canvas.getHeight(), 100, 200);
+            ScalableHelper s = new ScalableHelper(getWidth(),
+                    getHeight(), 100, 200);
 
             Paint p = new Paint();
             p.setStyle(Paint.Style.FILL);
-            canvas.drawColor(Color.BLACK);
+            canvas.drawColor(Color.RED);
             p.setColor(Color.WHITE);
+            p.setAntiAlias(true);
 
+            long millis = System.currentTimeMillis();
+            long seconds = millis / 1000;
+            int secsInDay = (int) (seconds % 86400);
+            int secsInHour = secsInDay % 3600;
+            int hour = secsInDay / 3600;
+            int minute = secsInHour / 60;
+            int second = secsInHour % 60;
+
+            canvas.save();
             for (int i=0; i<12; i++)
             {
                 if (i % 3 == 0)
@@ -87,10 +107,28 @@ public class ClockActivity extends Activity
                 {
                     canvas.drawRect(new Rect(s.getX(49), s.getY(30), s.getX(51), s.getY(55)), p);
                 }
-                canvas.rotate(30, s.getX(50), s.getY(100));
+                canvas.rotate(30, s.getHalfX(), s.getHalfY());
             }
+            canvas.restore();
 
+            p.setStrokeWidth(8);
+            canvas.save();
+            canvas.rotate(30 * hour + minute / 2, s.getHalfX(), s.getHalfY());
+            canvas.drawLine(s.getHalfX(), s.getY(50), s.getHalfX(), s.getY(120), p);
+            canvas.restore();
+
+            p.setStrokeWidth(4);
+            canvas.save();
+            canvas.rotate(6 * minute, s.getHalfX(), s.getHalfY());
+            canvas.drawLine(s.getHalfX(), s.getY(30), s.getHalfX(), s.getY(120), p);
+            canvas.restore();
+
+            p.setStyle(Paint.Style.FILL);
+            p.setColor(Color.RED);
+            canvas.drawCircle(s.getHalfX(), s.getHalfY(), s.getY(10), p);
             p.setStyle(Paint.Style.STROKE);
+            p.setColor(Color.WHITE);
+            p.setStrokeWidth(2);
             canvas.drawCircle(s.getHalfX(), s.getHalfY(), s.getY(10), p);
         }
     }
