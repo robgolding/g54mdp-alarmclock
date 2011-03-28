@@ -21,45 +21,6 @@ public class ClockActivity extends Activity
 {
     public static final String TAG = "ClockActivity";
 
-    class ScalableHelper
-    {
-        int width;
-        int height;
-        double spWidth;
-        double spHeight;
-
-        public ScalableHelper(int canvasWidth, int canvasHeight,
-                int scalableX, int scalableY)
-        {
-            width = canvasWidth;
-            height = canvasHeight;
-            spWidth = (double) canvasWidth / (double) scalableX;
-            spHeight = (double) canvasHeight / (double) scalableY;
-            Log.i(TAG, "spWidth: " + spWidth);
-            Log.i(TAG, "spHeight: " + spHeight);
-        }
-
-        public int getX(int scalableX)
-        {
-            return (int) (scalableX * spWidth);
-        }
-
-        public int getY(int scalableY)
-        {
-            return (int) (scalableY * spHeight);
-        }
-
-        public int getHalfX()
-        {
-            return (int)Math.round((double)width/2.0);
-        }
-
-        public int getHalfY()
-        {
-            return (int)Math.round((double)height/2.0);
-        }
-    }
-
     class ClockView extends View
     {
         private Time time;
@@ -90,12 +51,13 @@ public class ClockActivity extends Activity
         protected void onDraw(Canvas canvas)
         {
             super.onDraw(canvas);
-            ScalableHelper s = new ScalableHelper(getWidth(),
-                    getHeight(), 100, 200);
+            int boxSize = Math.min(getWidth(), getHeight());
+            int midX = (int)Math.round((double)getWidth()/2.0d);
+            int midY = (int)Math.round((double)getHeight()/2.0d);
 
             Paint p = new Paint();
             p.setStyle(Paint.Style.FILL);
-            canvas.drawColor(Color.RED);
+            canvas.drawColor(Color.BLUE);
             p.setColor(Color.WHITE);
             p.setAntiAlias(true);
 
@@ -107,47 +69,79 @@ public class ClockActivity extends Activity
             int minute = secsInHour / 60;
             int second = secsInHour % 60;
 
+            double proportion = 80.0d;
+
             canvas.save();
             for (int i=0; i<12; i++)
             {
                 if (i % 3 == 0)
                 {
-                    canvas.drawRect(new Rect(s.getX(47), s.getY(30), s.getX(49), s.getY(55)), p);
-                    canvas.drawRect(new Rect(s.getX(51), s.getY(30), s.getX(53), s.getY(55)), p);
+                    Rect r1 = new Rect(
+                            (int) (midX-(double)boxSize*3/proportion),
+                            (int) (midY-(double)boxSize/2.2d),
+                            (int) (midX-(double)boxSize/proportion),
+                            (int) (midY-(double)boxSize/3.2d)
+                            );
+                    Rect r2 = new Rect(
+                            (int) (midX+(double)boxSize*3/proportion),
+                            (int) (midY-(double)boxSize/2.2d),
+                            (int) (midX+(double)boxSize/proportion),
+                            (int) (midY-(double)boxSize/3.2d)
+                            );
+                    canvas.drawRect(r1, p);
+                    canvas.drawRect(r2, p);
                 }
                 else
                 {
-                    canvas.drawRect(new Rect(s.getX(49), s.getY(30), s.getX(51), s.getY(55)), p);
+                    Rect r = new Rect(
+                            (int) (midX-(double)boxSize/proportion),
+                            (int) (midY-(double)boxSize/2.2d),
+                            (int) (midX+(double)boxSize/proportion),
+                            (int) (midY-(double)boxSize/3.2d)
+                            );
+                    canvas.drawRect(r, p);
                 }
-                canvas.rotate(30, s.getHalfX(), s.getHalfY());
+                canvas.rotate(30, midX, midY);
             }
             canvas.restore();
 
             p.setStrokeWidth(8);
             canvas.save();
-            canvas.rotate(30 * hour + minute / 2, s.getHalfX(), s.getHalfY());
-            canvas.drawLine(s.getHalfX(), s.getY(50), s.getHalfX(), s.getY(120), p);
+            canvas.rotate(30 * hour + minute / 2, midX, midY);
+            canvas.drawLine(
+                    midX, (int) (midY-(double)boxSize/2.5d),
+                    midX, (int) (midY+(double)boxSize/7.0d),
+                    p
+            );
             canvas.restore();
 
             p.setStrokeWidth(4);
             canvas.save();
-            canvas.rotate(6 * minute, s.getHalfX(), s.getHalfY());
-            canvas.drawLine(s.getHalfX(), s.getY(30), s.getHalfX(), s.getY(120), p);
+            canvas.rotate(6 * minute, midX, midY);
+            canvas.drawLine(
+                    midX, (int) (midY-(double)boxSize/2.2d),
+                    midX, (int) (midY+(double)boxSize/7.0d),
+                    p
+            );
             canvas.restore();
 
             p.setStrokeWidth(2);
             canvas.save();
-            canvas.rotate(6 * second, s.getHalfX(), s.getHalfY());
-            canvas.drawLine(s.getHalfX(), s.getY(30), s.getHalfX(), s.getY(120), p);
+            canvas.rotate(6 * second, midX, midY);
+            canvas.drawLine(
+                    midX, (int) (midY-(double)boxSize/2.2d),
+                    midX, (int) (midY+(double)boxSize/7.0d),
+                    p
+            );
             canvas.restore();
 
             p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.RED);
-            canvas.drawCircle(s.getHalfX(), s.getHalfY(), s.getY(10), p);
+            p.setColor(Color.BLUE);
+            canvas.drawCircle(midX, midY, boxSize/15, p);
             p.setStyle(Paint.Style.STROKE);
             p.setColor(Color.WHITE);
             p.setStrokeWidth(2);
-            canvas.drawCircle(s.getHalfX(), s.getHalfY(), s.getY(10), p);
+            canvas.drawCircle(midX, midY, boxSize/15, p);
         }
     }
 
