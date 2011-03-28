@@ -1,8 +1,10 @@
 package com.robgolding.android.alarmclock;
 
 import java.lang.Math;
+import java.lang.Runnable;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.content.Context;
 import android.content.res.Resources;
@@ -60,12 +62,22 @@ public class ClockActivity extends Activity
 
     class ClockView extends View
     {
-        Time time;
+        private Time time;
+        private Handler handler;
+
+        private Runnable mUpdateTimeTask = new Runnable() {
+            public void run() {
+                ClockView.this.invalidate();
+                handler.postDelayed(this, 500);
+            }
+        };
 
         public ClockView(Context context)
         {
             super(context);
             time = new Time();
+            handler = new Handler();
+            handler.postDelayed(mUpdateTimeTask, 500);
         }
 
         @Override
@@ -120,6 +132,12 @@ public class ClockActivity extends Activity
             p.setStrokeWidth(4);
             canvas.save();
             canvas.rotate(6 * minute, s.getHalfX(), s.getHalfY());
+            canvas.drawLine(s.getHalfX(), s.getY(30), s.getHalfX(), s.getY(120), p);
+            canvas.restore();
+
+            p.setStrokeWidth(2);
+            canvas.save();
+            canvas.rotate(6 * second, s.getHalfX(), s.getHalfY());
             canvas.drawLine(s.getHalfX(), s.getY(30), s.getHalfX(), s.getY(120), p);
             canvas.restore();
 
