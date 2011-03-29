@@ -20,25 +20,13 @@ import android.util.Log;
 public class ClockActivity extends Activity
 {
     public static final String TAG = "ClockActivity";
+    public static final int UPDATE_UI_INTERVAL = 1000;
 
     class ClockView extends View
     {
-        private Time time;
-        private Handler handler;
-
-        private Runnable mUpdateTimeTask = new Runnable() {
-            public void run() {
-                ClockView.this.invalidate();
-                handler.postDelayed(this, 500);
-            }
-        };
-
         public ClockView(Context context)
         {
             super(context);
-            time = new Time();
-            handler = new Handler();
-            handler.postDelayed(mUpdateTimeTask, 500);
         }
 
         @Override
@@ -145,7 +133,16 @@ public class ClockActivity extends Activity
         }
     }
 
-    ClockView clockView;
+    private View clockView;
+    private Handler handler;
+
+    private Runnable updateUITask = new Runnable() {
+        public void run() {
+            Log.i(TAG, "Updating UI");
+            clockView.invalidate();
+            handler.postDelayed(this, UPDATE_UI_INTERVAL);
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -153,5 +150,14 @@ public class ClockActivity extends Activity
         super.onCreate(savedInstanceState);
         clockView = new ClockView(this);
         setContentView(clockView);
+        handler = new Handler();
+        handler.postDelayed(updateUITask, UPDATE_UI_INTERVAL);
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+        handler.removeCallbacks(updateUITask);
     }
 }
