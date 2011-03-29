@@ -24,9 +24,12 @@ public class ClockActivity extends Activity
 
     class ClockView extends View
     {
+        private Time time;
+
         public ClockView(Context context)
         {
             super(context);
+            time = new Time();
         }
 
         @Override
@@ -43,19 +46,13 @@ public class ClockActivity extends Activity
             int midX = (int)Math.round((double)getWidth()/2.0d);
             int midY = (int)Math.round((double)getHeight()/2.0d);
 
+            time.setToNow();
+
             Paint p = new Paint();
             p.setStyle(Paint.Style.FILL);
             canvas.drawColor(Color.BLUE);
             p.setColor(Color.WHITE);
             p.setAntiAlias(true);
-
-            long millis = System.currentTimeMillis();
-            long seconds = millis / 1000;
-            int secsInDay = (int) (seconds % 86400);
-            int secsInHour = secsInDay % 3600;
-            int hour = secsInDay / 3600;
-            int minute = secsInHour / 60;
-            int second = secsInHour % 60;
 
             double proportion = 80.0d;
 
@@ -95,7 +92,7 @@ public class ClockActivity extends Activity
 
             p.setStrokeWidth(8);
             canvas.save();
-            canvas.rotate(30 * hour + minute / 2, midX, midY);
+            canvas.rotate(30 * time.hour + time.minute / 2, midX, midY);
             canvas.drawLine(
                     midX, (int) (midY-(double)boxSize/2.5d),
                     midX, (int) (midY+(double)boxSize/7.0d),
@@ -105,7 +102,7 @@ public class ClockActivity extends Activity
 
             p.setStrokeWidth(4);
             canvas.save();
-            canvas.rotate(6 * minute, midX, midY);
+            canvas.rotate(6 * time.minute, midX, midY);
             canvas.drawLine(
                     midX, (int) (midY-(double)boxSize/2.2d),
                     midX, (int) (midY+(double)boxSize/7.0d),
@@ -115,7 +112,7 @@ public class ClockActivity extends Activity
 
             p.setStrokeWidth(2);
             canvas.save();
-            canvas.rotate(6 * second, midX, midY);
+            canvas.rotate(6 * time.second, midX, midY);
             canvas.drawLine(
                     midX, (int) (midY-(double)boxSize/2.2d),
                     midX, (int) (midY+(double)boxSize/7.0d),
