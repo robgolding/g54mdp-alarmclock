@@ -8,6 +8,9 @@ import android.os.Handler;
 import android.view.View;
 import android.content.Context;
 import android.content.res.Resources;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MenuInflater;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -15,12 +18,21 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.text.format.Time;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.widget.TimePicker;
 import android.util.Log;
 
 public class ClockActivity extends Activity
 {
     public static final String TAG = "ClockActivity";
+    static final int TIME_DIALOG_ID = 0;
+
     public static final int UPDATE_UI_INTERVAL = 1000;
+
+    private boolean alarmSet;
+    private int alarmHour;
+    private int alarmMinute;
 
     class ClockView extends View
     {
@@ -120,6 +132,20 @@ public class ClockActivity extends Activity
             );
             canvas.restore();
 
+            if (alarmSet)
+            {
+                p.setColor(Color.YELLOW);
+                p.setStrokeWidth(2);
+                canvas.save();
+                canvas.rotate(30 * alarmHour + alarmMinute, midX, midY);
+                canvas.drawCircle(
+                        midX, (int) (midY-(double)boxSize/3.2d),
+                        (int) ((double)boxSize/50.0d),
+                        p
+                );
+                canvas.restore();
+            }
+
             p.setStyle(Paint.Style.FILL);
             p.setColor(Color.BLUE);
             canvas.drawCircle(midX, midY, boxSize/15, p);
@@ -136,7 +162,7 @@ public class ClockActivity extends Activity
     private Runnable updateUITask = new Runnable() {
         public void run() {
             Log.i(TAG, "Updating UI");
-            clockView.invalidate();
+            updateUI();
             scheduleUIUpdate();
         }
     };
@@ -147,7 +173,13 @@ public class ClockActivity extends Activity
         super.onCreate(savedInstanceState);
         clockView = new ClockView(this);
         setContentView(clockView);
+
+        alarmSet = false;
+        alarmHour = 0;
+        alarmMinute = 0;
+
         handler = new Handler();
+        updateUI();
         scheduleUIUpdate();
     }
 
@@ -169,17 +201,71 @@ public class ClockActivity extends Activity
     public void onResume()
     {
         super.onResume();
-        cancelUIUpdate();
+        updateUI();
         scheduleUIUpdate();
+    }
+
+    private void updateUI()
+    {
+        clockView.invalidate();
     }
 
     public void scheduleUIUpdate()
     {
+        cancelUIUpdate();
+        updateUI();
         handler.postDelayed(updateUITask, UPDATE_UI_INTERVAL);
     }
 
     public void cancelUIUpdate()
     {
         handler.removeCallbacks(updateUITask);
+    }
+
+    private TimePickerDialog.OnTimeSetListener setAlarmListener =
+        new TimePickerDialog.OnTimeSetListener() {
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                alarmSet = true;
+                alarmHour = hourOfDay;
+                alarmMinute = minute;
+                updateUI();
+            }
+        };
+
+    @Override
+    protected Dialog onCreateDialog(int id)
+    {
+        switch (id)
+        {
+            case TIME_DIALOG_ID:
+                return new TimePickerDialog(this,
+                        setAlarmListener, alarmHour, alarmMinute, false);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case R.id.set_alarm:
+                showDialog(TIME_DIALOG_ID);
+                return true;
+            case R.id.unset_alarm:
+                alarmSet = false;
+                updateUI();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
