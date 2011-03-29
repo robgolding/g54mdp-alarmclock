@@ -140,7 +140,7 @@ public class ClockActivity extends Activity
         public void run() {
             Log.i(TAG, "Updating UI");
             clockView.invalidate();
-            handler.postDelayed(this, UPDATE_UI_INTERVAL);
+            scheduleUIUpdate();
         }
     };
 
@@ -151,13 +151,38 @@ public class ClockActivity extends Activity
         clockView = new ClockView(this);
         setContentView(clockView);
         handler = new Handler();
-        handler.postDelayed(updateUITask, UPDATE_UI_INTERVAL);
+        scheduleUIUpdate();
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        cancelUIUpdate();
     }
 
     @Override
     public void onStop()
     {
         super.onStop();
+        cancelUIUpdate();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        cancelUIUpdate();
+        scheduleUIUpdate();
+    }
+
+    public void scheduleUIUpdate()
+    {
+        handler.postDelayed(updateUITask, UPDATE_UI_INTERVAL);
+    }
+
+    public void cancelUIUpdate()
+    {
         handler.removeCallbacks(updateUITask);
     }
 }
