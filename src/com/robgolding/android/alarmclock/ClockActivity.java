@@ -2,11 +2,15 @@ package com.robgolding.android.alarmclock;
 
 import java.lang.Math;
 import java.lang.Runnable;
+import java.util.Calendar;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,10 +33,17 @@ public class ClockActivity extends Activity
     static final int TIME_DIALOG_ID = 0;
 
     public static final int UPDATE_UI_INTERVAL = 1000;
+    public static final String ALARM_INTENT =
+        "com.robgolding.android.alarmclock.ALARM";
 
     private boolean alarmSet;
     private int alarmHour;
     private int alarmMinute;
+    private AlarmManager am;
+    private PendingIntent pi;
+
+    private View clockView;
+    private Handler handler;
 
     class ClockView extends View
     {
@@ -156,9 +167,6 @@ public class ClockActivity extends Activity
         }
     }
 
-    private View clockView;
-    private Handler handler;
-
     private Runnable updateUITask = new Runnable() {
         public void run() {
             Log.i(TAG, "Updating UI");
@@ -177,6 +185,8 @@ public class ClockActivity extends Activity
         alarmSet = false;
         alarmHour = 0;
         alarmMinute = 0;
+
+        am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         handler = new Handler();
         updateUI();
@@ -225,12 +235,33 @@ public class ClockActivity extends Activity
     private TimePickerDialog.OnTimeSetListener setAlarmListener =
         new TimePickerDialog.OnTimeSetListener() {
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                alarmSet = true;
                 alarmHour = hourOfDay;
                 alarmMinute = minute;
+                ClockActivity.this.setAlarm();
                 updateUI();
             }
         };
+
+    private void setAlarm()
+    {
+        unsetAlarm();
+        Calendar alarm = Calendar.getInstance();
+        alarm.set(Calendar.HOUR_OF_DAY, alarmHour);
+        alarm.set(Calendar.MINUTE, alarmMinute);
+        if (alarm.before(Calendar.getInstance()))
+            alarm.add(Calendar.SECOND, 86400);
+        Intent i = new Intent(ALARM_INTENT);
+        pi = PendingIntent.getBroadcast(this, 0, i, 0);
+        am.set(AlarmManager.RTC_WAKEUP, alarm.getTimeInMillis(), pi);
+        alarmSet = true;
+    }
+
+    private void unsetAlarm()
+    {
+        if (pi != null)
+            am.cancel(pi);
+        alarmSet = false;
+    }
 
     @Override
     protected Dialog onCreateDialog(int id)
@@ -239,7 +270,7 @@ public class ClockActivity extends Activity
         {
             case TIME_DIALOG_ID:
                 return new TimePickerDialog(this,
-                        setAlarmListener, alarmHour, alarmMinute, false);
+                        setAlarmListener, alarmHour, alarmMinute, true);
         }
         return null;
     }
@@ -261,7 +292,7 @@ public class ClockActivity extends Activity
                 showDialog(TIME_DIALOG_ID);
                 return true;
             case R.id.unset_alarm:
-                alarmSet = false;
+                unsetAlarm();
                 updateUI();
                 return true;
             default:
