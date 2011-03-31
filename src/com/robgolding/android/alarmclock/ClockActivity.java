@@ -137,7 +137,7 @@ public class ClockActivity extends Activity
                 p.setColor(Color.YELLOW);
                 p.setStrokeWidth(2);
                 canvas.save();
-                canvas.rotate(30 * alarmHour + alarmMinute, midX, midY);
+                canvas.rotate(30 * alarmHour + alarmMinute / 2, midX, midY);
                 canvas.drawCircle(
                         midX, (int) (midY-(double)boxSize/3.2d),
                         (int) ((double)boxSize/50.0d),
