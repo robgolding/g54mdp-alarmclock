@@ -25,11 +25,14 @@ import android.text.format.Time;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.widget.TimePicker;
+import android.widget.Toast;
 import android.util.Log;
 
 public class ClockActivity extends Activity
 {
     public static final String TAG = "ClockActivity";
+    public static final String ALARM_TOAST_TEXT = "Wake up!";
+    public static final int ALARM_TOAST_DURATION = Toast.LENGTH_LONG;
     static final int TIME_DIALOG_ID = 0;
 
     public static final int UPDATE_UI_INTERVAL = 1000;
@@ -188,6 +191,11 @@ public class ClockActivity extends Activity
 
         am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
+        Intent i = getIntent();
+        Bundle extras = i.getExtras();
+        if (extras != null && extras.getBoolean("alarm"))
+            soundAlarm();
+
         handler = new Handler();
         updateUI();
         scheduleUIUpdate();
@@ -263,6 +271,15 @@ public class ClockActivity extends Activity
         alarmSet = false;
     }
 
+    private void soundAlarm()
+    {
+        Toast toast = Toast.makeText(getApplicationContext(),
+                ALARM_TOAST_TEXT,
+                ALARM_TOAST_DURATION);
+        toast.show();
+        unsetAlarm();
+    }
+
     @Override
     protected Dialog onCreateDialog(int id)
     {
@@ -270,9 +287,25 @@ public class ClockActivity extends Activity
         {
             case TIME_DIALOG_ID:
                 return new TimePickerDialog(this,
-                        setAlarmListener, alarmHour, alarmMinute, true);
+                        setAlarmListener, 0, 0, true);
         }
         return null;
+    }
+
+    @Override
+    protected void onPrepareDialog(int id, Dialog dialog, Bundle args)
+    {
+        switch(id)
+        {
+            case TIME_DIALOG_ID:
+                Time time = new Time();
+                time.setToNow();
+                int hour = alarmSet ? alarmHour : time.hour;
+                int minute = alarmSet ? alarmMinute : time.minute;
+                TimePickerDialog tpd = (TimePickerDialog)dialog;
+                tpd.updateTime(hour, minute);
+                break;
+        }
     }
 
     @Override

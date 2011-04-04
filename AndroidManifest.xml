@@ -11,7 +11,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".AlarmReceiever" android:enabled="true">
+        <receiver android:name=".AlarmReceiver" android:enabled="true">
             <intent-filter>
                 <action android:name="com.robgolding.android.alarmclock.ALARM"></action>
             </intent-filter>
