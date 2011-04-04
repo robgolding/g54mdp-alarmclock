@@ -42,6 +42,8 @@ public class ClockActivity extends Activity
     private boolean alarmSet;
     private int alarmHour;
     private int alarmMinute;
+    private boolean alarmSounded;
+
     private AlarmManager am;
     private PendingIntent pi;
 
@@ -188,12 +190,15 @@ public class ClockActivity extends Activity
         alarmSet = false;
         alarmHour = 0;
         alarmMinute = 0;
+        alarmSounded = false;
+
+        loadStateFromBundle(savedInstanceState);
 
         am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         Intent i = getIntent();
         Bundle extras = i.getExtras();
-        if (extras != null && extras.getBoolean("alarm"))
+        if (extras != null && extras.getBoolean("alarm") && !alarmSounded)
             soundAlarm();
 
         handler = new Handler();
@@ -277,6 +282,7 @@ public class ClockActivity extends Activity
                 ALARM_TOAST_TEXT,
                 ALARM_TOAST_DURATION);
         toast.show();
+        alarmSounded = true;
         unsetAlarm();
     }
 
@@ -331,5 +337,29 @@ public class ClockActivity extends Activity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void saveStateToBundle(Bundle outState)
+    {
+        outState.putInt("alarmHour", alarmHour);
+        outState.putInt("alarmMinute", alarmMinute);
+        outState.putBoolean("alarmSet", alarmSet);
+        outState.putBoolean("alarmSounded", alarmSounded);
+    }
+
+    private void loadStateFromBundle(Bundle inState)
+    {
+        if (inState == null)
+            return;
+        alarmHour = inState.getInt("alarmHour", 0);
+        alarmMinute = inState.getInt("alarmMinute", 0);
+        alarmSet = inState.getBoolean("alarmSet");
+        alarmSounded = inState.getBoolean("alarmSounded");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        saveStateToBundle(outState);
     }
 }
